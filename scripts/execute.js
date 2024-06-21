@@ -20,15 +20,18 @@ async function main() {
   });
 
   const AccountFactory = await hre.ethers.getContractFactory("AccountFactory");
-  const initCode =
-    FACTORY_ADDRESS +
-    AccountFactory.interface
-      .encodeFunctionData("createAccount", [address0])
-      .slice(2);
+  const initCode = "0x"; // if deploying for first time use init code below
+    // FACTORY_ADDRESS +
+    // AccountFactory.interface
+    //   .encodeFunctionData("createAccount", [address0])
+    //   .slice(2);
 
-  await entryPoint.depositTo(sender, {
-    value: ethers.parseEther("100"),
-  });
+	console.log("sender", sender);
+
+	// if need funds for depositing, uncomment below
+  // await entryPoint.depositTo(sender, {
+  //   value: ethers.parseEther("100"),
+  // });
 
   const Account = await hre.ethers.getContractFactory("Account");
   const userOp = {
