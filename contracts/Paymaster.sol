@@ -22,8 +22,22 @@ contract Paymaster is IPaymaster {
      *      <6-byte> validAfter - first timestamp this operation is valid
      *      Note that the validation code cannot use block.timestamp (or block.number) directly.
      */
-    function validatePaymasterUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 maxCost)
-    external returns (bytes memory context, uint256 validationData) {}
+    function validatePaymasterUserOp(
+        UserOperation calldata userOp,
+        bytes32 userOpHash,
+        uint256 maxCost
+    ) external returns (bytes memory context, uint256 validationData) {
+        // paymaster server generates the paymasterAndData
+        // alchemy_requestPaymasterAndData
+        // first 20 bytes: paymaster address
+        // endData: decide what you want it to be
+        // normally:
+        // timePeriod => during which the userOp is valid
+        // signature => some pk says it is willing to pay for the user op
+        // userOp.paymasterAndData
+        context = new bytes(0); // passed to the postOp method
+        validationData = 0; // special value means no validation
+    }
 
     /**
      * post-operation handler.
@@ -36,5 +50,9 @@ contract Paymaster is IPaymaster {
      * @param context - the context value returned by validatePaymasterUserOp
      * @param actualGasCost - actual gas used so far (without this postOp call).
      */
-    function postOp(PostOpMode mode, bytes calldata context, uint256 actualGasCost) external {}
+    function postOp(
+        PostOpMode mode,
+        bytes calldata context,
+        uint256 actualGasCost
+    ) external {}
 }
