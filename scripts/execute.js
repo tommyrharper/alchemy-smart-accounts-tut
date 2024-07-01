@@ -45,26 +45,44 @@ async function main() {
   //   hre.ethers.getBytes(hre.ethers.id("wee"))
   // );
 
+  const nonce = "0x" + (await entryPoint.getNonce(sender, 0)).toString(16); // hex encode,
+
   const Account = await hre.ethers.getContractFactory("Account");
   const userOp = {
     sender,
-    nonce: await entryPoint.getNonce(sender, 0),
+    nonce, // hex encode,
     initCode,
     callData: Account.interface.encodeFunctionData("execute"),
     callGasLimit: 800_000,
     verificationGasLimit: 800_000,
     preVerificationGas: 200_000,
-    maxFeePerGas: hre.ethers.parseUnits("10", "gwei"),
+    // maxFeePerGas: hre.ethers.parseUnits("10", "gwei"),
     maxPriorityFeePerGas: hre.ethers.parseUnits("10", "gwei"),
     paymasterAndData: PM_ADDRESS,
-    signature: "0x",
+    // signature: "0x",
+    // use the dummy signature when using eth_estimateUserOperationGas
+    signature:
+      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c",
   };
 
+  // if using actual bundler do this:
+  // const { preVerificationGas, verificationGasLimit, callGasLimit} = await ethers.provider.send("eth_estimateUserOperationGas", [EP_ADDRESS, userOp]);
+  // userOp.preVerificationGas = preVerificationGas;
+  // userOp.verificationGasLimit = verificationGasLimit;
+  // userOp.callGasLimit = callGasLimit;
+  // const maxPriorityFeePerGas = await ethers.provider.send("rundler_maxPriorityFeePerGas");
+  // userOp.maxPriorityFeePerGas = maxPriorityFeePerGas;
+  const { maxFeePerGas } = await ethers.provider.getFeeData();
+  userOp.maxFeePerGas = "0x" + maxFeePerGas.toString(16);
+
   const userOpHash = await entryPoint.getUserOpHash(userOp);
-  userOp.signature = signer0.signMessage(hre.ethers.getBytes(userOpHash));
+  userOp.signature = await signer0.signMessage(hre.ethers.getBytes(userOpHash));
 
   const tx = await entryPoint.handleOps([userOp], address0);
   const receipt = await tx.wait();
+
+  // use this instead of entryPoint.handleOps to use the bundler
+  // await ethers.provider.send("eth_sendUserOperation", [userOp, EP_ADDRESS]);
 
   console.log("Ops handled", receipt);
 }
