@@ -6,13 +6,6 @@ import "@account-abstraction/contracts/interfaces/IAccount.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "hardhat/console.sol";
 
-contract Test {
-    constructor(bytes memory sig) {
-        address recovered = ECDSA.recover(ECDSA.toEthSignedMessageHash(keccak256("wee")), sig);
-        console.log(recovered);
-    }
-}
-
 contract Account is IAccount {
     uint256 public count;
     address public owner;
@@ -22,11 +15,15 @@ contract Account is IAccount {
     }
 
     function validateUserOp(
-        UserOperation calldata, // userOp
+        UserOperation calldata userOp,
         bytes32, // userOpHash
         uint256 // missingAccountFunds
-    ) external pure returns (uint256 validationData) {
-        return 0;
+    ) external view returns (uint256 validationData) {
+        address recovered = ECDSA.recover(ECDSA.toEthSignedMessageHash(keccak256("wee")), userOp.signature);
+        console.log(recovered);
+        // if it returns 1 => invalid signature
+        // if it returns 0 => valid signature
+        return owner == recovered ? 0 : 1;
     }
 
     function execute() external {

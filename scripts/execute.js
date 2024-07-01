@@ -7,7 +7,7 @@ const EP_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 const PM_ADDRESS = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0";
 
 /// @dev make sure to change this appropriately!!!
-const IS_FIRST_RUN = true;
+const IS_FIRST_RUN = false;
 
 async function main() {
   const [signer0] = await hre.ethers.getSigners();
@@ -43,19 +43,23 @@ async function main() {
 
   console.log("sender", sender);
 
+  const signature = signer0.signMessage(
+    hre.ethers.getBytes(hre.ethers.id("wee"))
+  );
+
   const Account = await hre.ethers.getContractFactory("Account");
   const userOp = {
     sender,
     nonce: await entryPoint.getNonce(sender, 0),
     initCode,
     callData: Account.interface.encodeFunctionData("execute"),
-    callGasLimit: 200_000,
-    verificationGasLimit: 200_000,
-    preVerificationGas: 50_000,
+    callGasLimit: 800_000,
+    verificationGasLimit: 800_000,
+    preVerificationGas: 200_000,
     maxFeePerGas: hre.ethers.parseUnits("10", "gwei"),
     maxPriorityFeePerGas: hre.ethers.parseUnits("10", "gwei"),
     paymasterAndData: PM_ADDRESS,
-    signature: "0x",
+    signature,
   };
 
   const tx = await entryPoint.handleOps([userOp], address0);
