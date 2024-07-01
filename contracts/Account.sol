@@ -16,10 +16,10 @@ contract Account is IAccount {
 
     function validateUserOp(
         UserOperation calldata userOp,
-        bytes32, // userOpHash
+        bytes32 userOpHash, // userOpHash
         uint256 // missingAccountFunds
     ) external view returns (uint256 validationData) {
-        address recovered = ECDSA.recover(ECDSA.toEthSignedMessageHash(keccak256("wee")), userOp.signature);
+        address recovered = ECDSA.recover(ECDSA.toEthSignedMessageHash(userOpHash), userOp.signature);
         console.log(recovered);
         // if it returns 1 => invalid signature
         // if it returns 0 => valid signature

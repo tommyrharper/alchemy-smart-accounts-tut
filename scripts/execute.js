@@ -7,7 +7,7 @@ const EP_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 const PM_ADDRESS = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0";
 
 /// @dev make sure to change this appropriately!!!
-const IS_FIRST_RUN = false;
+const IS_FIRST_RUN = true;
 
 async function main() {
   const [signer0] = await hre.ethers.getSigners();
@@ -43,9 +43,9 @@ async function main() {
 
   console.log("sender", sender);
 
-  const signature = signer0.signMessage(
-    hre.ethers.getBytes(hre.ethers.id("wee"))
-  );
+  // const signature = signer0.signMessage(
+  //   hre.ethers.getBytes(hre.ethers.id("wee"))
+  // );
 
   const Account = await hre.ethers.getContractFactory("Account");
   const userOp = {
@@ -59,8 +59,11 @@ async function main() {
     maxFeePerGas: hre.ethers.parseUnits("10", "gwei"),
     maxPriorityFeePerGas: hre.ethers.parseUnits("10", "gwei"),
     paymasterAndData: PM_ADDRESS,
-    signature,
+    signature: "0x",
   };
+
+  const userOpHash = await entryPoint.getUserOpHash(userOp);
+  userOp.signature = signer0.signMessage(hre.ethers.getBytes(userOpHash));
 
   const tx = await entryPoint.handleOps([userOp], address0);
   const receipt = await tx.wait();
